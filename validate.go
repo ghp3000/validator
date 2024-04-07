@@ -2,10 +2,12 @@ package validator
 
 import (
 	"fmt"
+	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
 	"github.com/go-playground/locales/zh_Hant_TW"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	en_translations "github.com/go-playground/validator/v10/translations/en"
 	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 	tw_translations "github.com/go-playground/validator/v10/translations/zh_tw"
 	"reflect"
@@ -23,12 +25,19 @@ const (
 
 var v StructValidator = &defaultValidator{}
 
+func init() {
+	v.Engine()
+}
+
 type defaultValidator struct {
 	once     sync.Once
 	validate *validator.Validate
 	trans    ut.Translator
 }
 
+func (v *defaultValidator) Var(field interface{}, tag string) error {
+	return v.translate(v.validate.Var(field, tag))
+}
 func (v *defaultValidator) ValidateStruct(obj any) error {
 	if obj == nil {
 		return nil
@@ -59,7 +68,7 @@ func (v *defaultValidator) ValidateStruct(obj any) error {
 	}
 }
 func (v *defaultValidator) validateStruct(obj any) error {
-	v.lazyinit()
+	v.validate.Var(obj, "dive")
 	return v.validate.Struct(obj)
 }
 func (v *defaultValidator) Engine() any {
@@ -92,7 +101,16 @@ func (v *defaultValidator) SetLanguage(lang Language) error {
 	v.lazyinit()
 	switch lang {
 	case LangEn:
-		v.trans = nil
+		e := en.New()
+		uni := ut.New(e, e)
+		trans, ok := uni.GetTranslator("en")
+		if !ok {
+			return fmt.Errorf("get translator fail: %v", lang)
+		}
+		if err := en_translations.RegisterDefaultTranslations(v.validate, trans); err != nil {
+			return err
+		}
+		v.trans = trans
 		return nil
 	case LangZh:
 		z := zh.New()
@@ -122,11 +140,14 @@ func (v *defaultValidator) SetLanguage(lang Language) error {
 	return fmt.Errorf("unsupported language: %v", lang)
 }
 
-func ValidateStruct(obj any) error {
-	return v.ValidateStruct(obj)
-}
 func SetLanguage(lang Language) error {
 	return v.SetLanguage(lang)
+}
+func Var(field interface{}, tag string) error {
+	return v.Var(field, tag)
+}
+func Struct(obj any) error {
+	return v.ValidateStruct(obj)
 }
 
 type sliceValidationError []error

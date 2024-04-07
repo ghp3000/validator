@@ -16,7 +16,7 @@ func main() {
 		fmt.Println(err)
 	}
 	u := User{User: "admin", Password: "123456"}
-	err = validator.ValidateStruct(u)
+	err = validator.Struct(u)
 	if err != nil {
 		fmt.Println(err)
 	}

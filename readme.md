@@ -228,9 +228,14 @@ func main() {
         fmt.Println(err)
     }
     u := User{User: "admin", Password: "123456"}
-    err = validator.ValidateStruct(u)
+    err = validator.Struct(u)
     if err != nil {
         fmt.Println(err)
     }
+	i := 10
+	validator.SetLanguage(validator.LangEn)
+	if err := validator.Var(&i, "min=1,max=9"); err != nil {
+		fmt.Println(err)
+	}
 }
 ```
