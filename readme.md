@@ -232,10 +232,10 @@ func main() {
     if err != nil {
         fmt.Println(err)
     }
-	i := 10
-	validator.SetLanguage(validator.LangEn)
-	if err := validator.Var(&i, "min=1,max=9"); err != nil {
-		fmt.Println(err)
-	}
+    i := 10
+    validator.SetLanguage(validator.LangEn)
+    if err := validator.Var(&i, "min=1,max=9"); err != nil {
+        fmt.Println(err)
+    }
 }
 ```
